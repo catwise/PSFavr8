@@ -45,6 +45,8 @@ c                 3600 histogram cells and jumping past those with
 c                 zero counts
 c vsn 1.6  B71025 added missing CTYPE# lines to awaic headers
 c vsn 1.6  B71030 changed CTYPE# from "sin" to "tan" (WISE to unWISE)
+c vsn 1.6  B71122 changed MJD0 from start of hibernation to end of
+c                 4-band cryo
 c
 c=======================================================================
 c
@@ -119,7 +121,7 @@ c
 c
       common /vdt/ cdate,ctime,vsn
 c
-      Data Vsn/'1.6  B71030'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
+      Data Vsn/'1.6  B71122'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
      +     GotIn,GotOut,GotAng1,GotAng2/4*.false./, da/.false./,
      +     dbg/.false./, Slash/'/'/, TileNam/'NotGiven'/,
      +     Ang1acMin,Ang2acMin,Ang1dcMin,Ang2dcMin/4*99999.9/,
@@ -131,7 +133,10 @@ c
      +     nW1dcryo,nW1dpostcryo,nW2dcryo,nW2dpostcryo/4*0/,
      +     nEpoch/-1/, s01/1.55/, s02/1.0/, s11/0.95/, s12/0.84/
 c     
-      Data MJD0/55468.5/   ! JD = 2455468.5, September 29, 2010
+c     Data MJD0/55468.5/   ! JD = 2455468.5, September 29, 2010
+c                          !                 start of hibernation
+      Data MJD0/55414.441/ ! JD = 2455414.441,   August 6, 2010
+c                          !                     end of 4-band cryo
 c
 c=======================================================================
 c
@@ -2034,3 +2039,4 @@ c
 c    
       return
       end
+      
