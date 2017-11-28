@@ -47,6 +47,7 @@ c vsn 1.6  B71025 added missing CTYPE# lines to awaic headers
 c vsn 1.6  B71030 changed CTYPE# from "sin" to "tan" (WISE to unWISE)
 c vsn 1.6  B71122 changed MJD0 from start of hibernation to end of
 c                 4-band cryo
+c vsn 1.6  B71128 made MJD0 a command-line parameter
 c
 c=======================================================================
 c
@@ -121,7 +122,7 @@ c
 c
       common /vdt/ cdate,ctime,vsn
 c
-      Data Vsn/'1.6  B71122'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
+      Data Vsn/'1.6  B71128'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
      +     GotIn,GotOut,GotAng1,GotAng2/4*.false./, da/.false./,
      +     dbg/.false./, Slash/'/'/, TileNam/'NotGiven'/,
      +     Ang1acMin,Ang2acMin,Ang1dcMin,Ang2dcMin/4*99999.9/,
@@ -169,6 +170,7 @@ c
         print *,'    -mh  maximum number of histogram cells (3600)'
         print *,'    -d   turn on debug prints'
         print *,'    -da  dump angle histograms to stdout'
+        print *,'    -m   MJD separating cryo and post-cryo (55414.441)'
         print *,'    -w   testing on a Windows machine'
         print *
         print *,'If the -h and -mh values cannot span the angle range,'
@@ -278,8 +280,14 @@ c
           print *,'Histogram resolution must be > 0'
           call exit(64)
         end if        
-c                                      ! Max # Histogram cells
-      else if (Flag .eq. '-MH') then
+c                                  
+      else if (Flag .eq. '-M') then    ! MJD0
+        call NextNarg(NArg,Nargs)
+        call GetArg(NArg,TmpStr)
+        read (TmpStr, *, err=3000) MJD0
+        if (dbg) print *,'MJD0 = ',MJD0
+c                                   
+      else if (Flag .eq. '-MH') then   ! Max # Histogram cells
         call NextNarg(NArg,Nargs)
         call GetArg(NArg,TmpStr)
         read (TmpStr, *, err=3000) nHmax
@@ -2039,4 +2047,3 @@ c
 c    
       return
       end
-      
