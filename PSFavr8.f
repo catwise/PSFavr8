@@ -48,6 +48,10 @@ c vsn 1.6  B71030 changed CTYPE# from "sin" to "tan" (WISE to unWISE)
 c vsn 1.6  B71122 changed MJD0 from start of hibernation to end of
 c                 4-band cryo
 c vsn 1.6  B71128 made MJD0 a command-line parameter
+c vsn 1.6  B71207 eliminates "-w" because it is not needed; left in
+c                 Slash variable for convenience, '/' default
+c vsn 1.61 B80111 added psfunc scale factor to FITS header
+c vsn 1.62 B80128 set default psfunc scale factors back to 1.0
 c
 c=======================================================================
 c
@@ -122,7 +126,7 @@ c
 c
       common /vdt/ cdate,ctime,vsn
 c
-      Data Vsn/'1.6  B71128'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
+      Data Vsn/'1.62 B80128'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
      +     GotIn,GotOut,GotAng1,GotAng2/4*.false./, da/.false./,
      +     dbg/.false./, Slash/'/'/, TileNam/'NotGiven'/,
      +     Ang1acMin,Ang2acMin,Ang1dcMin,Ang2dcMin/4*99999.9/,
@@ -132,7 +136,7 @@ c
      +     w3/.false./, w4/.false./, ge/.false./, MJD2/-9.9/,
      +     nW1acryo,nW1apostcryo,nW2acryo,nW2apostcryo/4*0/,
      +     nW1dcryo,nW1dpostcryo,nW2dcryo,nW2dpostcryo/4*0/,
-     +     nEpoch/-1/, s01/1.55/, s02/1.0/, s11/0.95/, s12/0.84/
+     +     nEpoch/-1/, s01/1.0/, s02/1.0/, s11/1.0/, s12/1.0/
 c     
 c     Data MJD0/55468.5/   ! JD = 2455468.5, September 29, 2010
 c                          !                 start of hibernation
@@ -156,10 +160,10 @@ c
         print *
         print *,'The OPTIONAL flags and specifications are:'
         print *,'    -t   tile name (e.g., 1124p045)'
-        print *,'    -s01 scale factor for W1 option-0 psfunc (1.55)'
-        print *,'    -s02 scale factor for W2 option-0 psfunc (1.00)'
-        print *,'    -s11 scale factor for W1 option-1 psfunc (0.95)'
-        print *,'    -s12 scale factor for W2 option-1 psfunc (0.84)'
+        print *,'    -s01 scale factor for W1 option-0 psfunc (1.0)'
+        print *,'    -s02 scale factor for W2 option-0 psfunc (1.0)'
+        print *,'    -s11 scale factor for W1 option-1 psfunc (1.0)'
+        print *,'    -s12 scale factor for W2 option-1 psfunc (1.0)'
         print *,'    -w3  output W1 cryo PSF as W3'
         print *,'         (no cryo/postcryo averaging)'
         print *,'    -w4  output W2 cryo PSF as W4'
@@ -171,7 +175,7 @@ c
         print *,'    -d   turn on debug prints'
         print *,'    -da  dump angle histograms to stdout'
         print *,'    -m   MJD separating cryo and post-cryo (55414.441)'
-        print *,'    -w   testing on a Windows machine'
+c       print *,'    -w   testing on a Windows machine' ! don't need this after all
         print *
         print *,'If the -h and -mh values cannot span the angle range,'
         print *,'the histogram resolution (-h) will be increased as'
@@ -305,9 +309,9 @@ c                                      ! W1 cryo as W3
         w4 = .true.
         if (dbg) print *,'w4 = T'
 c                                      ! Windows directory backslashes
-      else if (Flag .eq. '-W') then
-        Slash = '\'
-        if (dbg) print *,'Window test; "slash" character = "\"'
+c     else if (Flag .eq. '-W') then    ! Windows DOS wil accept forward
+c       Slash = '\'                    ! slash in file names
+c       if (dbg) print *,'Window test; "slash" character = "\"'
       end if
 c 
       If (NArg .lt. NArgs) Go to 5
@@ -1025,8 +1029,9 @@ c
       write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +      Ang1acMax
       hdrline(13) = 'SCANDIR = ''ASCENDING'''
+      write(hdrline(15),'(''FPSFUNC =           '',f10.4,'' /'')') s11
 c
-      call wrfitsr(2,naxes,NPix,w1psfca,OutFNam,status,14,hdrline)
+      call wrfitsr(2,naxes,NPix,w1psfca,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *, 'ERROR: output status = ',status,' on file:'
         print *, OutFNAM(1:lnblnk(OutFNam))
@@ -1045,7 +1050,7 @@ c
       end if
 c
       w1psfuncca = s11*w1psfuncca
-      call wrfitsr(2,naxes,NPix,w1psfuncca,OutFNam,status,14,hdrline)
+      call wrfitsr(2,naxes,NPix,w1psfuncca,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1061,7 +1066,7 @@ c
         write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +        Ang1apMax
         hdrline(14) = 'PSFTYPE = ''W1 POSTCRYO'''
-        call wrfitsr(2,naxes,NPix,w1psfpa,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w1psfpa,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1071,7 +1076,7 @@ c
         OutFNam = OutPath(1:LNBlnk(OutPath))
      +            //'Asce'//Slash//'unWISE-w1-psfunc-wpro-01x01-01x01.fits'
         w1psfuncpa = s11*w1psfuncpa
-        call wrfitsr(2,naxes,NPix,w1psfuncpa,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w1psfuncpa,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1144,7 +1149,8 @@ c
       write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +      Ang1dcMax
       hdrline(13) = 'SCANDIR = ''DESCENDING'''
-      call wrfitsr(2,naxes,NPix,w1psfcd,OutFNam,status,14,hdrline)
+      write(hdrline(15),'(''FPSFUNC =           '',f10.4,'' /'')') s11
+      call wrfitsr(2,naxes,NPix,w1psfcd,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1161,7 +1167,7 @@ c
       end if
 c
       w1psfunccd = s11*w1psfunccd
-      call wrfitsr(2,naxes,NPix,w1psfunccd,OutFNam,status,14,hdrline)
+      call wrfitsr(2,naxes,NPix,w1psfunccd,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1177,7 +1183,7 @@ c
         write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +        Ang1dpMax
         hdrline(14) = 'PSFTYPE = ''W1 POSTCRYO'''
-        call wrfitsr(2,naxes,NPix,w1psfpd,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w1psfpd,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1187,7 +1193,7 @@ c
         OutFNam = OutPath(1:LNBlnk(OutPath))
      +            //'Desc'//Slash//'unWISE-w1-psfunc-wpro-01x01-01x01.fits'
         w1psfuncpd = s11*w1psfuncpd
-        call wrfitsr(2,naxes,NPix,w1psfuncpd,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w1psfuncpd,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1258,7 +1264,8 @@ c
      +      Ang2acMax
 c
       hdrline(13) = 'SCANDIR = ''ASCENDING'''
-      call wrfitsr(2,naxes,NPix,w2psfca,OutFNam,status,14,hdrline)
+      write(hdrline(15),'(''FPSFUNC =           '',f10.4,'' /'')') s12
+      call wrfitsr(2,naxes,NPix,w2psfca,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1275,7 +1282,7 @@ c
       end if
 c
       w2psfuncca = s12*w2psfuncca
-      call wrfitsr(2,naxes,NPix,w2psfuncca,OutFNam,status,14,hdrline)
+      call wrfitsr(2,naxes,NPix,w2psfuncca,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1291,7 +1298,7 @@ c
         write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +        Ang2apMax
         hdrline(14) = 'PSFTYPE = ''W2 POSTCRYO'''
-        call wrfitsr(2,naxes,NPix,w2psfpa,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w2psfpa,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1301,7 +1308,7 @@ c
         OutFNam = OutPath(1:LNBlnk(OutPath))
      +            //'Asce'//Slash//'unWISE-w2-psfunc-wpro-01x01-01x01.fits'
         w2psfuncpa = s12*w2psfuncpa
-        call wrfitsr(2,naxes,NPix,w2psfuncpa,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w2psfuncpa,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1361,7 +1368,8 @@ c
      +      Ang2dcMax
 c
       hdrline(13) = 'SCANDIR = ''DESCENDING'''
-      call wrfitsr(2,naxes,NPix,w2psfcd,OutFNam,status,14,hdrline)
+      write(hdrline(15),'(''FPSFUNC =           '',f10.4,'' /'')') s12
+      call wrfitsr(2,naxes,NPix,w2psfcd,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1378,7 +1386,7 @@ c
       end if
 c
       w2psfunccd = s12*w2psfunccd
-      call wrfitsr(2,naxes,NPix,w2psfunccd,OutFNam,status,14,hdrline)
+      call wrfitsr(2,naxes,NPix,w2psfunccd,OutFNam,status,15,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1394,7 +1402,8 @@ c
         write(hdrline(11),'(''ECLANGMX=           '',f10.4,'' /'')')
      +        Ang2dpMax
         hdrline(14) = 'PSFTYPE = ''W2 POSTCRYO'''
-        call wrfitsr(2,naxes,NPix,w2psfpd,OutFNam,status,14,hdrline)
+        write(hdrline(15),'(''FPSFUNC =           '',f10.4,'' /'')') s12
+        call wrfitsr(2,naxes,NPix,w2psfpd,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1404,7 +1413,7 @@ c
         OutFNam = OutPath(1:LNBlnk(OutPath))
      +            //'Desc'//Slash//'unWISE-w2-psfunc-wpro-01x01-01x01.fits'
         w2psfuncpd = s12*w2psfuncpd
-        call wrfitsr(2,naxes,NPix,w2psfuncpd,OutFNam,status,14,hdrline)
+        call wrfitsr(2,naxes,NPix,w2psfuncpd,OutFNam,status,15,hdrline)
         if (status .ne.0) then
           print *,'ERROR: output status = ',status,' on file:'
           print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1442,7 +1451,8 @@ c                                      ! Option 0 PSFs
       hdrline(14) = 'PSFTYPE = ''W1 OPTION 0'''
       hdrline(15) = 'TILE    = '''//TileNam//''''
       hdrline(16) = 'SCANDIR = ''ASCENDING AND DESCENDING AVERAGED'''
-      call wrfitsr(2,naxes,NPix,w1psfopt0,OutFNam,status,16,hdrline)
+      write(hdrline(17),'(''FPSFUNC =           '',f10.4,'' /'')') s01
+      call wrfitsr(2,naxes,NPix,w1psfopt0,OutFNam,status,17,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1452,7 +1462,7 @@ c                                      ! Option 0 PSFs
       OutFNam = OutPath(1:LNBlnk(OutPath))
      +          //'unWISE-w1-psfunc-wpro-01x01-01x01.fits'
       w1psfuncopt0 = s01*w1psfuncopt0
-      call wrfitsr(2,naxes,NPix,w1psfuncopt0,OutFNam,status,16,hdrline)
+      call wrfitsr(2,naxes,NPix,w1psfuncopt0,OutFNam,status,17,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1485,7 +1495,8 @@ c
         hdrline(13) = 'ECANGDMX= null'
       end if
       hdrline(14) = 'PSFTYPE = ''W2 OPTION 0'''
-      call wrfitsr(2,naxes,NPix,w2psfopt0,OutFNam,status,16,hdrline)
+      write(hdrline(17),'(''FPSFUNC =           '',f10.4,'' /'')') s02
+      call wrfitsr(2,naxes,NPix,w2psfopt0,OutFNam,status,17,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
@@ -1495,7 +1506,7 @@ c
       OutFNam = OutPath(1:LNBlnk(OutPath))
      +          //'unWISE-w2-psfunc-wpro-01x01-01x01.fits'
       w2psfuncopt0 = s02*w2psfuncopt0
-      call wrfitsr(2,naxes,NPix,w2psfuncopt0,OutFNam,status,16,hdrline)
+      call wrfitsr(2,naxes,NPix,w2psfuncopt0,OutFNam,status,17,hdrline)
       if (status .ne.0) then
         print *,'ERROR: output status = ',status,' on file:'
         print *,OutFNAM(1:lnblnk(OutFNam))
