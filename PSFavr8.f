@@ -52,6 +52,7 @@ c vsn 1.6  B71207 eliminates "-w" because it is not needed; left in
 c                 Slash variable for convenience, '/' default
 c vsn 1.61 B80111 added psfunc scale factor to FITS header
 c vsn 1.62 B80128 set default psfunc scale factors back to 1.0
+c          B80226: changed "end of cryo" to "end of cryo PSF"
 c
 c=======================================================================
 c
@@ -126,7 +127,7 @@ c
 c
       common /vdt/ cdate,ctime,vsn
 c
-      Data Vsn/'1.62 B80128'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
+      Data Vsn/'1.62 B80226'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
      +     GotIn,GotOut,GotAng1,GotAng2/4*.false./, da/.false./,
      +     dbg/.false./, Slash/'/'/, TileNam/'NotGiven'/,
      +     Ang1acMin,Ang2acMin,Ang1dcMin,Ang2dcMin/4*99999.9/,
@@ -138,10 +139,15 @@ c
      +     nW1dcryo,nW1dpostcryo,nW2dcryo,nW2dpostcryo/4*0/,
      +     nEpoch/-1/, s01/1.0/, s02/1.0/, s11/1.0/, s12/1.0/
 c     
-c     Data MJD0/55468.5/   ! JD = 2455468.5, September 29, 2010
+c     Data MJD0/55469.278/ ! JD = 2455468.5, September 29, 2010
+c                          !                 end of 3-band cryo
+c     Data MJD0/55994.0/   ! JD = 2455468.5, February 1, 2011
 c                          !                 start of hibernation
-      Data MJD0/55414.441/ ! JD = 2455414.441,   August 6, 2010
-c                          !                     end of 4-band cryo
+c     Data MJD0/55414.932/ ! JD = 2455414.441, August 6, 2010
+c                          !                   end of 4-band cryo
+      Data MJD0/55480.0/   ! JD = 2455480.0, October 11, 2010
+c                                            Peter's Preference
+c                                            end of cryo PSF
 c
 c=======================================================================
 c
@@ -174,7 +180,7 @@ c
         print *,'    -mh  maximum number of histogram cells (3600)'
         print *,'    -d   turn on debug prints'
         print *,'    -da  dump angle histograms to stdout'
-        print *,'    -m   MJD separating cryo and post-cryo (55414.441)'
+        print *,'    -m   MJD separating cryo and post-cryo (55480.0)'
 c       print *,'    -w   testing on a Windows machine' ! don't need this after all
         print *
         print *,'If the -h and -mh values cannot span the angle range,'
