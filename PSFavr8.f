@@ -52,7 +52,8 @@ c vsn 1.6  B71207 eliminates "-w" because it is not needed; left in
 c                 Slash variable for convenience, '/' default
 c vsn 1.61 B80111 added psfunc scale factor to FITS header
 c vsn 1.62 B80128 set default psfunc scale factors back to 1.0
-c          B80226: changed "end of cryo" to "end of cryo PSF"
+c          B80226 changed "end of cryo" to "end of cryo PSF"
+c vsn 1.63 B80306 delete FITS files with output names that already exist
 c
 c=======================================================================
 c
@@ -127,7 +128,7 @@ c
 c
       common /vdt/ cdate,ctime,vsn
 c
-      Data Vsn/'1.62 B80226'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
+      Data Vsn/'1.63 B80306'/, nOvrSamp/11/, nHmax/3600/, dH/0.1/,
      +     GotIn,GotOut,GotAng1,GotAng2/4*.false./, da/.false./,
      +     dbg/.false./, Slash/'/'/, TileNam/'NotGiven'/,
      +     Ang1acMin,Ang2acMin,Ang1dcMin,Ang2dcMin/4*99999.9/,
@@ -1732,7 +1733,8 @@ c
 c-----------------------------------------------------------------------
 c
       integer*4     status,blocksize,outunit,naxis,naxes(naxis),bitpix,
-     +              fpixel, group, nelements, nhdrline, n, lsize
+     +              fpixel, group, nelements, nhdrline, n, lsize,
+     +              Access, system
       real(4)       array(lsize)
       character*(*) fout
       character(80) hdrline(nhdrline)
@@ -1742,6 +1744,12 @@ c
      +              extend/.false./, fpixel/1/, group/1/
 c
 c-----------------------------------------------------------------------
+c
+c                                      ! delete existing file with this
+c                                      ! same name, if any
+c
+      if (Access(fout(1:lnblnk(fout)),' ') .eq. 0)
+     +    n = system('rm '//fout(1:lnblnk(fout)))
 c
 c  The STATUS parameter must be initialized before using FITSIO.  A
 c  positive value of STATUS is returned whenever a serious error occurs.
